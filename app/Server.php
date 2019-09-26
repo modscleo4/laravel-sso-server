@@ -4,6 +4,7 @@ namespace App;
 
 use App\Models\Broker;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
@@ -46,6 +47,41 @@ class Server extends \Jasny\SSO\Server
     }
 
     /**
+     *
+     * @param Request $request
+     *
+     * @return string
+     */
+    public function loginForm(Request $request)
+    {
+        try {
+            if (!$request->broker) {
+                $this->fail('No broker id specified.', true);
+            }
+
+            $broker = $this->getBrokerInfo($request->broker);
+            $return_url = $request->get('return_url');
+            $broker->setAttribute('return_url', $return_url);
+            $broker->setAttribute('session_id', $request->session_id);
+        } catch (Exception $e) {
+            $this->redirect(null, ['sso_error' => $e->getMessage()]);
+        }
+
+        return redirect()->route('login')->with(['broker' => $broker]);
+    }
+
+    /**
+     * @param $sessionId
+     * @param $email
+     */
+    public function manualLogin($sessionId, $email)
+    {
+        $savedSessionId = $this->getBrokerSessionData($sessionId);
+        $this->startSession($savedSessionId);
+        $this->setSessionData('sso_user', $email);
+    }
+
+    /**
      * @param null|string $email
      * @param null|string $password
      * @param null|bool $remember
@@ -82,6 +118,8 @@ class Server extends \Jasny\SSO\Server
         try {
             $this->startBrokerSession();
             $this->setSessionData('sso_user', null);
+
+            Auth::logout();
         } catch (Exception $e) {
             return $this->returnJson(['error' => $e->getMessage()]);
         }
@@ -99,6 +137,10 @@ class Server extends \Jasny\SSO\Server
         try {
             $this->startBrokerSession();
             $username = $this->getSessionData('sso_user');
+
+            if (!$username) {
+                $username = Auth::user()->email;
+            }
 
             if (!$username) {
                 $this->fail('User not authenticated. Session ID: ' . $this->getSessionData('id'));
@@ -157,9 +199,11 @@ class Server extends \Jasny\SSO\Server
         if (!preg_match('/^SSO-(\w*+)-(\w*+)-([a-z0-9]*+)$/', $this->getBrokerSessionId(), $matches)) {
             $this->fail('Invalid session id');
         }
+
         if ($this->generateSessionId($matches[1], $matches[2]) != $sessionId) {
             $this->fail('Checksum failed: Client IP address may have changed');
         }
+
         return $matches[1];
     }
 
@@ -307,7 +351,7 @@ class Server extends \Jasny\SSO\Server
      *
      * @param string $brokerId
      *
-     * @return null|array
+     * @return null|Broker
      */
     protected function getBrokerInfo($brokerId)
     {
@@ -323,7 +367,7 @@ class Server extends \Jasny\SSO\Server
      */
     protected function getUserInfo($email)
     {
-        return User::where('email', '=', $email)->firstOrFail();
+        return User::with('roles')->where('email', '=', $email)->firstOrFail();
     }
 
     /**

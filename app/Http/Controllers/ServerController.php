@@ -15,11 +15,16 @@ class ServerController extends Controller
      */
     public function attach(Request $request, Server $server)
     {
-       $server->attach(
+        $server->attach(
             $request->get('broker', null),
             $request->get('token', null),
             $request->get('checksum', null)
         );
+    }
+
+    public function loginForm(Request $request, Server $server)
+    {
+        return $server->loginForm($request);
     }
 
     /**
