@@ -3,13 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Broker;
 use App\Server;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Session;
-use Jasny\SSO\Exception;
 
 class LoginController extends Controller
 {
@@ -46,29 +44,36 @@ class LoginController extends Controller
     /**
      * Show the application's login form.
      *
+     * @param Request $request
      * @return \Illuminate\Http\Response
      */
-    public function showLoginForm()
+    public function showLoginForm(Request $request)
     {
         $genCookie = true;
+        $return_url = null;
         $broker = Session::get('broker');
-        if (!$broker) {
+
+        if (!$broker && Cookie::has('__broker')) {
             $broker = (object)json_decode(Cookie::get('__broker'), true);
             $genCookie = false;
         }
 
-        $return_url = $broker->return_url;
-        $session_id = $broker->session_id;
+        if ($broker) {
+            $return_url = $request->return_url;
+            if (!$return_url) {
+                $return_url = $broker->return_url;
+            }
 
-        if ($broker == null || $return_url == null || $session_id == null) {
-            abort(404);
+            if ($return_url == null) {
+                abort(404);
+            }
+
+            if ($genCookie) {
+                Cookie::queue(Cookie::make('__broker', json_encode($broker->toArray()), 60));
+            }
         }
 
-        if ($genCookie) {
-            Cookie::queue(Cookie::make('__broker', json_encode($broker->toArray()), 60));
-        }
-
-        return view('auth.login');
+        return view('auth.login')->with(['return_url' => $return_url]);
     }
 
     /**
@@ -87,17 +92,22 @@ class LoginController extends Controller
     /**
      * The user has been authenticated.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  mixed  $user
+     * @param \Illuminate\Http\Request $request
+     * @param mixed $user
      * @return mixed
      */
     protected function authenticated(Request $request, $user)
     {
-        $broker = (object)json_decode(Cookie::get('__broker'), true);
-        $this->redirectTo = $broker->return_url;
-        $server = new Server();
-        $server->manualLogin($broker->session_id, $user->email);
-        Cookie::queue(Cookie::forget('__broker'));
+        if (Cookie::has('__broker')) {
+            $this->redirectTo = $request->return_url;
+
+            $broker = (object)json_decode(Cookie::get('__broker'), true);
+            $server = new Server();
+            $server->manualLogin($broker->session_id, $user->email);
+            Cookie::queue(Cookie::forget('__broker'));
+        } else {
+            Session::put('sso_user', $user->email);
+        }
 
         return redirect($this->redirectPath());
     }

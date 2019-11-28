@@ -2,8 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-
+/**
+ * Class Broker
+ * @package App\Models
+ *
+ * @property int id
+ * @property string name
+ * @property string url
+ * @property string secret
+ */
 class Broker extends Model
 {
     /**
@@ -12,6 +19,6 @@ class Broker extends Model
      * @var array
      */
     protected $fillable = [
-        'name', 'secret',
+        'name', 'url', 'secret',
     ];
 }

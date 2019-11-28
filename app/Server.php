@@ -5,7 +5,6 @@ namespace App;
 use App\Models\Broker;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
 use Jasny\SSO\Exception;
@@ -59,15 +58,35 @@ class Server extends \Jasny\SSO\Server
                 $this->fail('No broker id specified.', true);
             }
 
-            $broker = $this->getBrokerInfo($request->broker);
-            $return_url = $request->get('return_url');
-            $broker->setAttribute('return_url', $return_url);
+            $broker_id = $request->broker;
+            $broker = $this->getBrokerInfo($broker_id);
+            $broker->setAttribute('return_url', $request->return_url);
             $broker->setAttribute('session_id', $request->session_id);
+
+            $return_url = $request->return_url;
         } catch (Exception $e) {
             $this->redirect(null, ['sso_error' => $e->getMessage()]);
         }
 
         return redirect()->route('login')->with(['broker' => $broker]);
+    }
+
+    public function passwordForm(Request $request)
+    {
+        try {
+            if (!$request->broker) {
+                $this->fail('No broker id specified.', true);
+            }
+
+            $broker_id = $request->broker;
+            $broker = $this->getBrokerInfo($broker_id);
+
+            $return_url = $request->return_url;
+        } catch (Exception $e) {
+            $this->redirect(null, ['sso_error' => $e->getMessage()]);
+        }
+
+        return redirect()->route('user.password.form')->with(['return_url' => $return_url]);
     }
 
     /**
@@ -136,20 +155,24 @@ class Server extends \Jasny\SSO\Server
     {
         try {
             $this->startBrokerSession();
-            $username = $this->getSessionData('sso_user');
 
-            if (!$username) {
+            if (!Auth::check()) {
+                $username = $this->getSessionData('sso_user');
+            } else {
                 $username = Auth::user()->email;
             }
 
             if (!$username) {
-                $this->fail('User not authenticated. Session ID: ' . $this->getSessionData('id'));
+                $this->fail("User not authenticated. Session ID: {$this->getSessionData('id')}");
             }
 
             if (!$user = $this->getUserInfo($username)) {
                 $this->fail('User not found.');
             }
 
+            if (!$user->can("{$this->brokerId}")) {
+                $this->fail('User cannot access this Broker.');
+            }
         } catch (Exception $e) {
             return $this->returnJson(['error' => $e->getMessage()]);
         }
@@ -224,7 +247,7 @@ class Server extends \Jasny\SSO\Server
             $this->fail('Provided broker does not exist.');
         }
 
-        return 'SSO-' . $brokerId . '-' . $token . '-' . hash('sha256', 'session' . $token . $broker['secret']);
+        return "SSO-{$brokerId}-{$token}-" . hash('sha256', "session{$token}{$broker['secret']}");
     }
 
     /**
@@ -244,7 +267,7 @@ class Server extends \Jasny\SSO\Server
             $this->fail('Provided broker does not exist.');
         }
 
-        return hash('sha256', 'attach' . $token . $broker['secret']);
+        return hash('sha256', "attach{$token}{$broker['secret']}");
     }
 
     /**
@@ -367,7 +390,7 @@ class Server extends \Jasny\SSO\Server
      */
     protected function getUserInfo($email)
     {
-        return User::with('roles')->where('email', '=', $email)->firstOrFail();
+        return User::where('email', '=', $email)->firstOrFail();
     }
 
     /**
@@ -464,7 +487,7 @@ class Server extends \Jasny\SSO\Server
      */
     protected function saveBrokerSessionData($brokerSessionId, $sessionData)
     {
-        Cache::put('broker_session:' . $brokerSessionId, $sessionData, now()->addHour());
+        Cache::put("broker_session:{$brokerSessionId}", $sessionData, now()->addHour());
     }
 
     /**
@@ -476,6 +499,6 @@ class Server extends \Jasny\SSO\Server
      */
     protected function getBrokerSessionData($brokerSessionId)
     {
-        return Cache::get('broker_session:' . $brokerSessionId);
+        return Cache::get("broker_session:{$brokerSessionId}");
     }
 }

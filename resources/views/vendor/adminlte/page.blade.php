@@ -3,6 +3,27 @@
 @section('adminlte_css')
     <link rel="stylesheet"
           href="{{ asset('vendor/adminlte/dist/css/skins/skin-' . config('adminlte.skin', 'blue') . '.min.css')}} ">
+    <style type="text/css">
+        body {
+            padding-right: 0 !important;
+        }
+
+        hr {
+            border-top: 1px solid #eee;
+        }
+
+        .select2 {
+            width: 100% !important;
+        }
+
+        .dataTable {
+            width: 100% !important;
+        }
+
+        .bg-white {
+            background-color: #ffffff !important;
+        }
+    </style>
     @stack('css')
     @yield('css')
 @stop
@@ -140,10 +161,33 @@
 
     </div>
     <!-- ./wrapper -->
+
+    <script type="text/javascript">
+        // Remove all empty help blocks
+        Array.from(document.querySelectorAll('.form-group .help-block:empty')).forEach(element => {
+            element.remove();
+        });
+    </script>
 @stop
 
 @section('adminlte_js')
     <script src="{{ asset('vendor/adminlte/dist/js/adminlte.min.js') }}"></script>
+    <script type="text/javascript">
+        jQuery(document).ready(function () {
+            function removeHasError() {
+                // Remove the has-error class when the user focuses the input
+                this.classList.remove('has-error');
+
+                // Remove the span class=".help-block"
+                let help_block = this.querySelector('.help-block');
+                if (help_block !== null) {
+                    help_block.remove();
+                }
+            }
+
+            jQuery('.has-error').on('focusin', removeHasError).on('change', removeHasError);
+        });
+    </script>
     @stack('js')
     @yield('js')
 @stop

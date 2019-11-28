@@ -27,6 +27,11 @@ class ServerController extends Controller
         return $server->loginForm($request);
     }
 
+    public function passwordForm(Request $request, Server $server)
+    {
+        return $server->passwordForm($request);
+    }
+
     /**
      * @param Request $request
      * @param Server $server

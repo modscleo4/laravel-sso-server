@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Rules\CurrentPassword;
+use Carbon\Carbon;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Auth\RedirectsUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
 class ChangePasswordController extends Controller
@@ -53,7 +55,13 @@ class ChangePasswordController extends Controller
      */
     public function showChangeForm(Request $request, $token = null)
     {
-        return view('auth.passwords.change');
+        $return_url = null;
+        $return_url = Session::get('return_url');
+        if (!$return_url) {
+            $return_url = $request->return_url;
+        }
+
+        return view('auth.passwords.change')->with(['return_url' => $return_url]);
     }
 
     /**
@@ -85,8 +93,8 @@ class ChangePasswordController extends Controller
     protected function rules()
     {
         return [
-            'current_password' => ['required', new CurrentPassword],
-            'password' => 'required|confirmed|min:8',
+            'current_password' => [(\App\Auth::user()->password_change_at != null) ? 'required' : '', new CurrentPassword],
+            'password' => ['required', 'confirmed', 'min:8'],
         ];
     }
 
@@ -123,6 +131,7 @@ class ChangePasswordController extends Controller
     protected function changePassword(Authenticatable $user, $password)
     {
         $user->password = Hash::make($password);
+        $user->password_change_at = Carbon::now();
 
         $user->setRememberToken(Str::random(60));
 
@@ -138,6 +147,10 @@ class ChangePasswordController extends Controller
      */
     protected function sendChangeResponse(Request $request)
     {
+        if ($request->return_url) {
+            $this->redirectTo = "{$request->return_url}?password_updated=true";
+        }
+
         return redirect($this->redirectPath())
             ->with(['saved' => true, 'status' => trans('passwords.change')]);
     }

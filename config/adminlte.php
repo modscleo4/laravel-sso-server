@@ -112,7 +112,7 @@ return [
 
     'login_url' => 'login',
 
-    'register_url' => 'register',
+    'register_url' => null,
 
     /*
     |--------------------------------------------------------------------------
@@ -176,14 +176,58 @@ return [
             'active' => true,
             'files' => [
                 [
+                    'type' => 'css',
+                    'asset' => false,
+                    'location' => '//cdn.datatables.net/1.10.19/css/dataTables.bootstrap.min.css',
+                ],
+
+                [
                     'type' => 'js',
                     'asset' => false,
-                    'location' => '//cdn.datatables.net/v/bs/dt-1.10.18/datatables.min.js',
+                    'location' => '//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js',
                 ],
+                [
+                    'type' => 'js',
+                    'asset' => false,
+                    'location' => '//cdn.datatables.net/1.10.19/js/dataTables.bootstrap.min.js',
+                ],
+
+                [
+                    'type' => 'js',
+                    'asset' => false,
+                    'location' => '//cdn.datatables.net/buttons/1.5.6/js/dataTables.buttons.min.js',
+                ],
+                [
+                    'type' => 'js',
+                    'asset' => false,
+                    'location' => '//cdn.datatables.net/buttons/1.5.6/js/buttons.html5.min.js',
+                ],
+                [
+                    'type' => 'js',
+                    'asset' => false,
+                    'location' => '//cdn.datatables.net/buttons/1.5.6/js/buttons.print.min.js',
+                ],
+            ],
+        ],
+        [
+            'name' => 'Datatables.responsive',
+            'active' => true,
+            'files' => [
                 [
                     'type' => 'css',
                     'asset' => false,
-                    'location' => '//cdn.datatables.net/v/bs/dt-1.10.18/datatables.min.css',
+                    'location' => '//cdn.datatables.net/responsive/2.2.2/css/responsive.bootstrap.min.css',
+                ],
+
+                [
+                    'type' => 'js',
+                    'asset' => false,
+                    'location' => '//cdn.datatables.net/responsive/2.2.2/js/dataTables.responsive.min.js',
+                ],
+                [
+                    'type' => 'js',
+                    'asset' => false,
+                    'location' => '//cdn.datatables.net/responsive/2.2.2/js/responsive.bootstrap.min.js',
                 ],
             ],
         ],
@@ -192,16 +236,80 @@ return [
             'active' => true,
             'files' => [
                 [
+                    'type' => 'css',
+                    'asset' => false,
+                    'location' => '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.9/css/select2.css',
+                ],
+                [
                     'type' => 'js',
                     'asset' => false,
-                    'location' => '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js',
+                    'location' => '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.9/js/select2.min.js',
                 ],
+                [
+                    'type' => 'js',
+                    'asset' => false,
+                    'location' => '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.9/js/i18n/pt-BR.js',
+                ],
+            ],
+        ],
+        [
+            'name' => 'Chartjs',
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'js',
+                    'asset' => false,
+                    'location' => '//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.bundle.min.js',
+                ],
+            ],
+        ],
+        [
+            'name' => 'wysihtml5',
+            'active' => true,
+            'files' => [
                 [
                     'type' => 'css',
                     'asset' => false,
-                    'location' => '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.css',
+                    'location' => '//cdnjs.cloudflare.com/ajax/libs/bootstrap3-wysiwyg/0.3.3/bootstrap3-wysihtml5.min.css',
                 ],
-            ],
+                [
+                    'type' => 'js',
+                    'asset' => false,
+                    'location' => '//cdnjs.cloudflare.com/ajax/libs/bootstrap3-wysiwyg/0.3.3/bootstrap3-wysihtml5.all.min.js',
+                ],
+                [
+                    'type' => 'js',
+                    'asset' => false,
+                    'location' => '//cdnjs.cloudflare.com/ajax/libs/bootstrap3-wysiwyg/0.3.3/locales/bootstrap-wysihtml5.pt-BR.min.js',
+                ],
+            ]
+        ],
+        [
+            'name' => 'inputmask',
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'js',
+                    'asset' => false,
+                    'location' => '//cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/3.3.4/jquery.inputmask.bundle.min.js',
+                ]
+            ]
+        ],
+        [
+            'name' => 'iCheck',
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'css',
+                    'asset' => false,
+                    'location' => '//cdnjs.cloudflare.com/ajax/libs/iCheck/1.0.2/skins/all.css',
+                ],
+                [
+                    'type' => 'js',
+                    'asset' => false,
+                    'location' => '//cdnjs.cloudflare.com/ajax/libs/iCheck/1.0.2/icheck.min.js',
+                ]
+            ]
         ],
         [
             'name' => 'Chartjs',

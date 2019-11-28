@@ -16,7 +16,8 @@
         "jeroennoten/laravel-adminlte": "^2.0",
         "laravel/framework": "^6.0",
         "laravel/tinker": "^1.0",
-        "spatie/laravel-permission": "^3.0"
+        "spatie/laravel-permission": "^3.0",
+        "ext-pdo": "*"
     },
     "require-dev": {
         "facade/ignition": "^1.4",

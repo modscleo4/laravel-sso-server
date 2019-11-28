@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Broker;
+use App\Models\Permission;
 use Illuminate\Console\Command;
 
 class DeleteBroker extends Command
@@ -40,6 +41,9 @@ class DeleteBroker extends Command
     {
         $broker = Broker::where('name', $this->argument('name'))->firstOrFail();
         $broker->delete();
+
+        $permission = Permission::findByName($broker->name);
+        $permission->delete();
 
         $this->info('Broker with name `' . $this->argument('name') . '` successfully deleted.');
     }
