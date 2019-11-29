@@ -62,8 +62,6 @@ class Server extends \Jasny\SSO\Server
             $broker = $this->getBrokerInfo($broker_id);
             $broker->setAttribute('return_url', $request->return_url);
             $broker->setAttribute('session_id', $request->session_id);
-
-            $return_url = $request->return_url;
         } catch (Exception $e) {
             $this->redirect(null, ['sso_error' => $e->getMessage()]);
         }

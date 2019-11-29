@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Server;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Session;
 
 class LoginController extends Controller
@@ -49,31 +48,30 @@ class LoginController extends Controller
      */
     public function showLoginForm(Request $request)
     {
-        $genCookie = true;
-        $return_url = null;
+        $return_url = $request->return_url;
+        $session_id = $request->session_id;
         $broker = Session::get('broker');
 
-        if (!$broker && Cookie::has('__broker')) {
-            $broker = (object)json_decode(Cookie::get('__broker'), true);
-            $genCookie = false;
-        }
-
         if ($broker) {
-            $return_url = $request->return_url;
+            Session::remove('broker');
+
             if (!$return_url) {
                 $return_url = $broker->return_url;
+
+                if (!$return_url) {
+                    abort(404);
+                }
             }
 
-            if ($return_url == null) {
-                abort(404);
-            }
-
-            if ($genCookie) {
-                Cookie::queue(Cookie::make('__broker', json_encode($broker->toArray()), 60));
+            if (!$session_id) {
+                $session_id = $broker->session_id;
             }
         }
 
-        return view('auth.login')->with(['return_url' => $return_url]);
+        return view('auth.login')->with([
+            'session_id' => $session_id,
+            'return_url' => $return_url,
+        ]);
     }
 
     /**
@@ -98,13 +96,10 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
-        if (Cookie::has('__broker')) {
+        if ($request->filled('return_url') && $request->filled('session_id')) {
             $this->redirectTo = $request->return_url;
-
-            $broker = (object)json_decode(Cookie::get('__broker'), true);
             $server = new Server();
-            $server->manualLogin($broker->session_id, $user->email);
-            Cookie::queue(Cookie::forget('__broker'));
+            $server->manualLogin($request->session_id, $user->email);
         } else {
             Session::put('sso_user', $user->email);
         }
