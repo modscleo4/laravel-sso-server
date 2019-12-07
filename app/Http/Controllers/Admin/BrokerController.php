@@ -91,6 +91,8 @@ class BrokerController extends Controller
         $log .= "\nUser: " . Auth::user()->name;
         $log .= "\nOld data: " . json_encode($broker, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
+        $oldName = $broker->name;
+
         $broker->name = $validatedData->name;
         $broker->url = $validatedData->url;
 
@@ -99,6 +101,9 @@ class BrokerController extends Controller
 
         if ($saved) {
             Log::info($log);
+            $permission = Permission::findByName($oldName);
+            $permission->name = $broker->name;
+            $permission->save();
 
             $roles = Role::all();
             foreach ($roles as $role) {
